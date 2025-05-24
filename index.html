@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kelly John - Poultry Record Keeper with Expenses</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 20px;
+    background-image: url('https://images.unsplash.com/photo-1589201500380-9448f59bfa62?auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  h1, h2, h3 {
+    color: white;
+    text-shadow: 1px 1px 3px #000;
+    text-align: center;
+  }
+  form, .records, .summary {
+    background: rgba(255,255,255,0.9);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  label {
+    display: block;
+    margin: 8px 0 4px;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    font-size: 1rem;
+  }
+  button {
+    margin-top: 10px;
+    padding: 12px 18px;
+    border: none;
+    background: #28a745;
+    color: white;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #218838;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  th, td {
+    border: 1px solid #aaa;
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 1rem;
+    word-break: break-word;
+  }
+  th {
+    background: #f2f2f2;
+  }
+  .summary div {
+    font-weight: bold;
+    margin: 8px 0;
+    font-size: 1.3rem;
+  }
+  .action-btn {
+    background: #007bff;
+    margin-right: 5px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+  }
+  .action-btn:hover {
+    background: #0056b3;
+  }
+  .delete-btn {
+    background: #dc3545;
+  }
+  .delete-btn:hover {
+    background: #b02a37;
+  }
+  footer {
+    text-align: center;
+    color: white;
+    padding: 15px 10px;
+    background: rgba(0,0,0,0.6);
+    margin-top: auto;
+    font-size: 1rem;
+  }
+
+  /* Responsive Styles */
+  @media (max-width: 600px) {
+    body {
+      padding: 10px;
+    }
+    form, .records, .summary {
+      max-width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+    label {
+      margin: 6px 0 2px;
+      font-size: 1rem;
+    }
+    input, select {
+      font-size: 1.1rem;
+      padding: 10px;
+    }
+    button {
+      font-size: 1.3rem;
+      padding: 14px 20px;
+      width: 100%;
+      margin-top: 12px;
+    }
+    .action-btn {
+      font-size: 1rem;
+      padding: 8px 12px;
+      margin-bottom: 5px;
+      width: 48%;
+      display: inline-block;
+    }
+    /* Make tables horizontally scrollable */
+    .records table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    th, td {
+      font-size: 1rem;
+      padding: 12px 10px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Kelly John 🐔 Poultry Record Keeper</h1>
+
+<div class="summary" id="summary">
+  <h2>Weekly Egg Collection Summary</h2>
+  <div id="totalEggsWeek">Total Eggs Collected in Last 7 Days: 0</div>
+</div>
+
+<form id="chickenForm">
+  <h3>Add Chicken</h3>
+  <label for="chickenName">Name:</label>
+  <input type="text" id="chickenName" required />
+
+  <label for="dateBought">Date Bought:</label>
+  <input type="date" id="dateBought" required />
+
+  <label for="cost">Cost (Ksh):</label>
+  <input type="number" id="cost" min="0" step="0.01" required />
+
+  <label for="status">Status:</label>
+  <select id="status">
+    <option value="Not Laying">Not Laying</option>
+    <option value="Laying">Laying</option>
+  </select>
+
+  <button type="submit" id="chickenSubmitBtn">Add Chicken</button>
+  <button type="button" id="chickenCancelEditBtn" style="display:none; margin-left:10px; background:#6c757d;">Cancel</button>
+</form>
+
+<form id="eggForm">
+  <h3>Log Eggs</h3>
+  <label for="eggChickenSelect">Chicken Name:</label>
+  <select id="eggChickenSelect" required></select>
+
+  <label for="eggDate">Date:</label>
+  <input type="date" id="eggDate" required />
+
+  <label for="eggCount">Eggs Collected:</label>
+  <input type="number" id="eggCount" min="0" required />
+
+  <button type="submit" id="eggSubmitBtn">Log Egg</button>
+  <button type="button" id="eggCancelEditBtn" style="display:none; margin-left:10px; background:#6c757d;">Cancel</button>
+</form>
+
+<div class="records">
+  <h3>All Chickens</h3>
+  <table id="chickenTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Date Bought</th>
+        <th>Cost (Ksh)</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="totalCostDisplay" style="margin-top: 10px; font-weight: bold; font-size: 1.2rem; text-align: right;">
+    Total Cost of Chickens: Ksh 0.00
+  </div>
+</div>
+
+<div class="records">
+  <h3>Egg Logs</h3>
+  <table id="eggTable">
+    <thead>
+      <tr>
+        <th>Chicken</th>
+        <th>Date</th>
+        <th>Eggs</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<footer>
+  &copy; 2025 Kelly John. All rights reserved.
+</footer>
+
+<script>
+  let chickens = JSON.parse(localStorage.getItem('chickens')) || [];
+  let eggLogs = JSON.parse(localStorage.getItem('eggLogs')) || [];
+
+  const chickenForm = document.getElementById('chickenForm');
+  const eggForm = document.getElementById('eggForm');
+
+  const chickenTableBody = document.querySelector('#chickenTable tbody');
+  const eggTableBody = document.querySelector('#eggTable tbody');
+
+  const eggChickenSelect = document.getElementById('eggChickenSelect');
+
+  const totalEggsWeekElem = document.getElementById('totalEggsWeek');
+  const totalCostDisplay = document.getElementById('totalCostDisplay');
+
+  let editChickenIndex = null;
+  let editEggIndex = null;
+
+  const chickenSubmitBtn = document.getElementById('chickenSubmitBtn');
+  const chickenCancelEditBtn = document.getElementById('chickenCancelEditBtn');
+  const eggSubmitBtn = document.getElementById('eggSubmitBtn');
+  const eggCancelEditBtn = document.getElementById('eggCancelEditBtn');
+
+  function saveData() {
+    localStorage.setItem('chickens', JSON.stringify(chickens));
+    localStorage.setItem('eggLogs', JSON.stringify(eggLogs));
+  }
+
+  function findChicken(name) {
+    return chickens.find(c => c.name === name);
+  }
+
+  function updateChickenSelect() {
+    eggChickenSelect.innerHTML = '';
+    chickens.forEach(ch => {
+      const option = document.createElement('option');
+      option.value = ch.name;
+      option.textContent = ch.name;
+      eggChickenSelect.appendChild(option);
+    });
+  }
+
+  function updateChickenTable() {
+    chickenTableBody.innerHTML = '';
+    chickens.forEach((ch, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${ch.name}</td>
+        <td>${ch.dateBought}</td>
+        <td>${ch.cost.toFixed(2)}</td>
+        <td>${ch.status}</td>
+        <td>
+          <button class="action-btn" onclick="editChicken(${index})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteChicken(${index})">Delete</button>
+        </td>
+      `;
+      chickenTableBody.appendChild(tr);
+    });
+    updateTotalCost();
+  }
+
+  function updateEggTable() {
+    eggTableBody.innerHTML = '';
+    eggLogs.forEach((log, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${log.name}</td>
+        <td>${log.date}</td>
+        <td>${log.count}</td>
+        <td>
+          <button class="action-btn" onclick="editEgg(${index})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteEgg(${index})">Delete</button>
+        </td>
+      `;
+      eggTableBody.appendChild(tr);
+    });
+  }
+
+  function updateSummary() {
+    // Calculate eggs collected in last 7 days
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const totalEggsWeek = eggLogs.reduce((sum, log) => {
+      const logDate = new Date(log.date);
+      if (logDate >= sevenDaysAgo && logDate <= today) {
+        return sum + log.count;
+      }
+      return sum;
+    }, 0);
+
+    totalEggsWeekElem.textContent = `Total Eggs Collected in Last 7 Days: ${totalEggsWeek}`;
+  }
+
+  function updateTotalCost() {
+    const totalCost = chickens.reduce((sum, ch) => sum + ch.cost, 0);
+    totalCostDisplay.textContent = `Total Cost of Chickens: Ksh ${totalCost.toFixed(2)}`;
+  }
+
+  // Chicken form submission
+  chickenForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('chickenName').value.trim();
+    const dateBought = document.getElementById('dateBought').value;
+    const cost = parseFloat(document.getElementById('cost').value);
+    const status = document.getElementById('status').value;
+
+    if (!name || !dateBought || isNaN(cost)) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+
+    // Check for duplicate chicken names when adding new
+    if (editChickenIndex === null && chickens.some(ch => ch.name.toLowerCase() === name.toLowerCase())) {
+      alert('Chicken name already exists. Choose a different name.');
+      return;
+    }
+
+    if (editChickenIndex !== null) {
+      // Update existing chicken
+      const oldName = chickens[editChickenIndex].name;
+      chickens[editChickenIndex] = { name, dateBought, cost, status };
+
+      // Update egg logs names if chicken name changed
+      if (oldName !== name) {
+        eggLogs.forEach(log => {
+          if (log.name === oldName) log.name = name;
+        });
+      }
+    } else {
+      // Add new chicken
+      chickens.push({ name, dateBought, cost, status });
+    }
+
+    saveData();
+    updateChickenTable();
+    updateEggTable();
+    updateChickenSelect();
+    updateSummary();
+
+    chickenForm.reset();
+    chickenSubmitBtn.textContent = 'Add Chicken';
+    chickenCancelEditBtn.style.display = 'none';
+    editChickenIndex = null;
+  });
+
+  chickenCancelEditBtn.addEventListener('click', () => {
+    chickenForm.reset();
+    chickenSubmitBtn.textContent = 'Add Chicken';
+    chickenCancelEditBtn.style.display = 'none';
+    editChickenIndex = null;
+  });
+
+  // Egg form submission
+  eggForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = eggChickenSelect.value;
+    const date = document.getElementById('eggDate').value;
+    const count = parseInt(document.getElementById('eggCount').value);
+
+    if (!name || !date || isNaN(count)) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+
+    if (editEggIndex !== null) {
+      eggLogs[editEggIndex] = { name, date, count };
+    } else {
+      eggLogs.push({ name, date, count });
+    }
+
+    saveData();
+    updateEggTable();
+    updateSummary();
+
+    eggForm.reset();
+    eggSubmitBtn.textContent = 'Log Egg';
+    eggCancelEditBtn.style.display = 'none';
+    editEggIndex = null;
+  });
+
+  eggCancelEditBtn.addEventListener('click', () => {
+    eggForm.reset();
+    eggSubmitBtn.textContent = 'Log Egg';
+    eggCancelEditBtn.style.display = 'none';
+    editEggIndex = null;
+  });
+
+  // Edit Chicken
+  window.editChicken = function(index) {
+    const ch = chickens[index];
+    document.getElementById('chickenName').value = ch.name;
+    document.getElementById('dateBought').value = ch.dateBought;
+    document.getElementById('cost').value = ch.cost;
+    document.getElementById('status').value = ch.status;
+    chickenSubmitBtn.textContent = 'Update Chicken';
+    chickenCancelEditBtn.style.display = 'inline-block';
+    editChickenIndex = index;
+  };
+
+  // Delete Chicken
+  window.deleteChicken = function(index) {
+    if (!confirm(`Delete chicken "${chickens[index].name}" and all its egg logs?`)) return;
+    const nameToDelete = chickens[index].name;
+    chickens.splice(index, 1);
+    eggLogs = eggLogs.filter(log => log.name !== nameToDelete);
+    saveData();
+    updateChickenTable();
+    updateEggTable();
+    updateChickenSelect();
+    updateSummary();
+    if (editChickenIndex === index) {
+      chickenForm.reset();
+      chickenSubmitBtn.textContent = 'Add Chicken';
+      chickenCancelEditBtn.style.display = 'none';
+      editChickenIndex = null;
+    }
+  };
+
+  // Edit Egg
+  window.editEgg = function(index) {
+    const log = eggLogs[index];
+    eggChickenSelect.value = log.name;
+    document.getElementById('eggDate').value = log.date;
+    document.getElementById('eggCount').value = log.count;
+    eggSubmitBtn.textContent = 'Update Egg Log';
+    eggCancelEditBtn.style.display = 'inline-block';
+    editEggIndex = index;
+  };
+
+  // Delete Egg
+  window.deleteEgg = function(index) {
+    if (!confirm('Delete this egg log?')) return;
+    eggLogs.splice(index, 1);
+    saveData();
+    updateEggTable();
+    updateSummary();
+  };
+
+  // Initial load
+  updateChickenTable();
+  updateEggTable();
+  updateChickenSelect();
+  updateSummary();
+</script>
+
+</body>
+</html>
+
+
+
